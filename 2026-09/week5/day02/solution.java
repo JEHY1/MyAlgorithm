@@ -3,10 +3,11 @@ import java.util.*;
 class Solution {
     static final int WIDTH = 50;
     static final int HEIGHT = 50;
-    static final int CELL_SIZE = (WIDTH + 1) * (HEIGHT + 1);
+    static final int CELL_SIZE = WIDTH * HEIGHT + 1;
     
     String[] grid;
     int[] parent;
+    Map<Integer, List<Integer>> subSet;
     
     public String[] solution(String[] commands) {
         init();
@@ -67,9 +68,11 @@ class Solution {
     private void init(){
         grid = new String[CELL_SIZE];
         parent = new int[CELL_SIZE];
+        subSet = new HashMap<>();
         
         for(int i = 1; i < CELL_SIZE; i++){
             parent[i] = i;
+            subSet.put(i, new ArrayList<>());
         }
     }
     
@@ -97,6 +100,10 @@ class Solution {
         else if(grid[a] != null && grid[b] != null){
             grid[b] = null;
         }
+
+        subSet.computeIfAbsent(a, k -> new ArrayList<>()).add(b);
+        List<Integer> list = subSet.remove(b);
+        subSet.get(a).addAll(list);
     }
     
     private void update(int r, int c, String val){
@@ -107,11 +114,11 @@ class Solution {
     }
     
     private void update(String val1, String val2){
-        for(int i = 0; i < CELL_SIZE; i++){
-            int root = find(i);
-            if(grid[root] != null && grid[root].equals(val1)){
-                grid[root] = val2;
-            }
+        Set<Integer> list = subSet.keySet();
+        for(int i : list){
+            if(grid[i] != null && grid[i].equals(val1)){
+                grid[i] = val2;
+            } 
         }
     }
     
@@ -128,19 +135,15 @@ class Solution {
         String val = grid[root];
         grid[root] = null;
         
-        Queue<Integer> queue = new ArrayDeque<>();
-        
-        for(int i = 0; i < CELL_SIZE; i++){
-            if(find(i) == root){
-                queue.offer(i);
+        List<Integer> list = subSet.get(root);
+        if(list != null){
+            for(int i : list){
+                parent[i] = i;
+                subSet.put(i, new ArrayList<>());
             }
         }
         
-        while(!queue.isEmpty()){
-            int i = queue.poll();
-            parent[i] = i;
-        }
-        
+        list.clear();
         grid[idx] = val;
     }
     
@@ -152,6 +155,6 @@ class Solution {
     }
     
     private int getIdx(int r, int c){
-        return (r - 1) * HEIGHT + c;
+        return (r - 1) * WIDTH + c;
     }
 }
