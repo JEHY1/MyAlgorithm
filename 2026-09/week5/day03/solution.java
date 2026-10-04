@@ -2,7 +2,6 @@ import java.util.*;
 
 class Solution {
     
-    static final int CARD_FAIR = 7;
     static int[] dr = {-1, 0, 1, 0};
     static int[] dc = {0, 1, 0, -1};
     
@@ -10,45 +9,30 @@ class Solution {
     static final int W = 4;
     
     int answer;
+    int cardCount;
+    int[][] cardIdMapper;
+    int[][] board;
+    Queue<int[]> queue;
+    boolean[][][] visited;
     
     public int solution(int[][] board, int r, int c) {        
-        answer = 0;
-        
-        int cardCount = 0;
-        int[] cardMapper = new int[14];
-        Arrays.fill(cardMapper, -1);
-        
-        for(int row = 0; row < H; row++){
-            for(int col = 0; col < W; col++){
-                int card = board[row][col];
-                if(card != 0){
-                    if(cardMapper[card] == -1){
-                        cardMapper[card] = cardCount++;
-                    }
-                    else{
-                        cardMapper[card + CARD_FAIR] = cardCount++;
-                        board[row][col] += CARD_FAIR;
-                    }
-                }
-            }
-        }
-        
-        int resetMask = (1 << cardCount) - 1;
-        int resetHavingCard = 0;
-        int resetBehavierCount = 0;
-        boolean[][][] visited = new boolean[H][W][resetMask + 1];
-        Queue<int[]> queue = new ArrayDeque<>();
+        init(board);
+
+        int initalMask = (1 << cardCount) - 1;
+        int initalHavingCard = 0;
+        int initalBehaviorCount = 0;
+        int initalHavingCardId = -1;
         
         if(board[r][c] != 0){
             int card = board[r][c];
-            resetMask ^= 1 << cardMapper[card];
-            resetHavingCard = card;
-            resetBehavierCount = 1;
-            answer++;
+            initalMask ^= 1 << cardIdMapper[r][c];
+            initalHavingCard = card;
+            initalHavingCardId = cardIdMapper[r][c];
+            initalBehaviorCount = 1;
         }
         
-        visited[r][c][resetMask] = true;
-        queue.offer(new int[] {r, c, resetMask, resetHavingCard, resetBehavierCount});
+        visited[r][c][initalMask] = true;
+        queue.offer(new int[] {r, c, initalMask, initalHavingCard, initalHavingCardId, initalBehaviorCount});
         
         while(!queue.isEmpty()){
             int[] state = queue.poll();
@@ -56,19 +40,20 @@ class Solution {
             int cc = state[1];
             int mask = state[2];
             int havingCard = state[3];
-            int behavierCount = state[4];
+            int havingCardId = state[4];
+            int behaviorCount = state[5];
             
             for(int d = 0; d < 4; d++){
                 int nr = cr + dr[d];
                 int nc = cc + dc[d];
-                int point = dash(board, cr, cc, d, mask, havingCard, cardMapper);
+                int point = dash(cr, cc, d, mask, havingCardId);
                 int nr2 = point >> 16;
                 int nc2 = point & 0xffff;
                 
-                if(bfsDepth(board, queue, visited, nr, nc, mask, havingCard, behavierCount, cardMapper)){
+                if(bfsDepth(nr, nc, mask, havingCard, havingCardId, behaviorCount)){
                     return answer;
                 }
-                if(bfsDepth(board, queue, visited, nr2, nc2, mask, havingCard, behavierCount, cardMapper)){
+                if(bfsDepth(nr2, nc2, mask, havingCard, havingCardId, behaviorCount)){
                     return answer;
                 }
             }
@@ -76,11 +61,36 @@ class Solution {
         
         return answer;
     }
+
+    private void init(int[][] board){
+        this.board = board;
+        answer = 0;
+        this.cardCount = 0;
+        cardIdMapper = new int[4][4];
+
+        for(int row = 0; row < 4; row++){
+            Arrays.fill(cardIdMapper[row], -1);
+        }
+        
+        for(int row = 0; row < H; row++){
+            for(int col = 0; col < W; col++){
+                int card = board[row][col];
+                if(card != 0){
+                    cardIdMapper[row][col] = cardCount++;
+                }
+            }
+        }
+
+        int maskSize = 1 << cardCount;
+        visited = new boolean[H][W][maskSize];
+        queue = new ArrayDeque<>();
+    }
     
-    private boolean bfsDepth(int[][] board, Queue<int[]> queue, boolean[][][] visited, int nr, int nc, int mask, int havingCard, int behavierCount, int[] mapper){
+    private boolean bfsDepth(int nr, int nc, int mask, int havingCard, int havingCardId, int behaviorCount){
         int nextMask = mask;
         int nextHavingCard = havingCard;
-        int nextBehavierCount = behavierCount + 1;
+        int nexthavingCardId = havingCardId;
+        int nextbehaviorCount = behaviorCount + 1;
 
         if(nr < 0 || nc < 0 || nr >= H || nc >= W){
             return false;
@@ -88,22 +98,24 @@ class Solution {
 
         if(board[nr][nc] != 0){
             int card = board[nr][nc];
-            if(havingCard != card && havingCard % CARD_FAIR == card % CARD_FAIR){
+            if(havingCard == card && cardIdMapper[nr][nc] != havingCardId){
                 nextHavingCard = 0;
-                nextBehavierCount++;
+                nexthavingCardId = -1;
+                nextbehaviorCount++;
                 
-                nextMask ^= (1 << mapper[card]);
+                nextMask ^= (1 << cardIdMapper[nr][nc]);
             }
             else if(havingCard == 0){
-                if((nextMask & (1 << mapper[card])) != 0){
+                if((nextMask & (1 << cardIdMapper[nr][nc])) != 0){
                     nextHavingCard = card;
-                    nextBehavierCount++;
-                    nextMask ^= (1 << mapper[card]);
+                    nexthavingCardId = cardIdMapper[nr][nc];
+                    nextbehaviorCount++;
+                    nextMask ^= (1 << cardIdMapper[nr][nc]);
                 }
             }
 
             if(nextMask == 0){
-                answer = nextBehavierCount;
+                answer = nextbehaviorCount;
                 return true;
             }
         }
@@ -113,12 +125,12 @@ class Solution {
         }
 
         visited[nr][nc][nextMask] = true;
-        queue.offer(new int[] {nr, nc, nextMask, nextHavingCard, nextBehavierCount});
+        queue.offer(new int[] {nr, nc, nextMask, nextHavingCard, nexthavingCardId, nextbehaviorCount});
         
         return false;
     }
     
-    private int dash(int[][] board, int r, int c, int d, int mask, int havingCard, int[] mapper){
+    private int dash(int r, int c, int d, int mask, int havingCardId){
         while(true){
             r += dr[d];
             c += dc[d];
@@ -132,8 +144,9 @@ class Solution {
             int card = board[r][c];
             
             if(card != 0){
-                if(card == havingCard || (mask & (1 << mapper[card])) != 0)
-                return r << 16 | c;
+                if(cardIdMapper[r][c] == havingCardId || (mask & (1 << cardIdMapper[r][c])) != 0){
+                    return r << 16 | c;
+                }
             }
         }
     }
