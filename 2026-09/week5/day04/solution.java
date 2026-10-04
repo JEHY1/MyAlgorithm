@@ -28,8 +28,10 @@ class Solution {
         }
 
         boolean canWin = false;
-        int validTurn = 0;
-        int selDir = -1;
+        int validTurn = turn;
+        boolean canMove = false;
+
+        board[r][c] = 0;
 
         for(int d = 0; d < 4; d++){
             int nr = r + dr[d];
@@ -43,7 +45,7 @@ class Solution {
                 continue;
             }
 
-            board[r][c] = 0;
+            canMove = true;
 
             if(player == 0){
                 dfsReturn = dfs(nr, nc, r1, c1, turn + 1);
@@ -56,34 +58,22 @@ class Solution {
             int useTurn = dfsReturn[1];
 
             if(loser != player){
-                if(!canWin){
+                if(!canWin || useTurn < validTurn){
                     canWin = true;
                     validTurn = useTurn;
-                    selDir = d;
-                }
-                else{
-                    if(useTurn < validTurn){
-                        validTurn = useTurn;
-                        selDir = d;
-                    }
                 }
             }
-            else{
-                if(!canWin){
-                    if(useTurn > validTurn){
-                        validTurn = useTurn;
-                        selDir = d;
-                    }
-                }
+            else if(!canWin){
+                validTurn = Math.max(validTurn, useTurn);
             }
-        }
-
-        //갈 수 있는곳이 없는 경우
-        if(selDir == -1){
-            return new int[] {player, turn};
         }
 
         board[r][c] = 1;
+
+        //갈 수 있는곳이 없는 경우
+        if(!canMove){
+            return new int[] {player, validTurn};
+        }
 
         return new int[] {canWin ? player ^ 1 : player, validTurn};
     }
