@@ -1,88 +1,81 @@
-import java.util.Arrays;
-
-public class Solution {
-	
-	final static int WIN = 1;
-	final static int LOSE = 0;
-
-  int edgeCount;
-	int[] head;
-	int[] to;
-	int[] next;
-	int[] result;
-  int canWin;
-	int canLose;
-
-	public int solution(int n, int[][] results) {
-		int answer = 0;
-		init(n, results);
-
-		for(int v = 1; v <= n; v++) {
-			if(canGetValidResult(n, v)) {
-				answer++;
-			}
-		}
-		
-		return answer;
-	}
-	
-	public void init(int n, int[][] results) {
-		int E = results.length;
-		edgeCount = 0;
-		head = new int[n + 1];
-		Arrays.fill(head, -1);
-		to = new int[2 * E];
-		next = new int[2 * E];
-		result = new int[2 * E];
-		
-		for(int[] result : results) {
-			int v1 = result[0];
-			int v2 = result[1];
-			
-			addEdge(v1, v2, WIN);
-			addEdge(v2, v1, LOSE);
-		}
-	}
-	
-	public void addEdge(int from, int to, int result) {
-		this.to[edgeCount] = to;
-		this.result[edgeCount] = result;
-		this.next[edgeCount] = this.head[from];
-		this.head[from] = edgeCount++;
-	}
-	
-	public boolean canGetValidResult(int n, int start) {
-		canWin = 0;
-		canLose = 0;
-		boolean[] visited = new boolean[n + 1];
-		dfs(start, WIN, visited);
-		dfs(start, LOSE, visited);
-		
-		return canWin + canLose == n - 1;
-	}
-	
-	public void dfs(int currentV, int findResult, boolean[] visited) {
-		for(int edgeIdx = head[currentV]; edgeIdx != -1; edgeIdx = next[edgeIdx]) {
-			int nextV = to[edgeIdx];
-			int result = this.result[edgeIdx];
-			
-			if(visited[nextV]) {
-				continue;
-			}
-			
-			if(result != findResult) {
-				continue;
-			}
-			
-			if(findResult == WIN) {
-				canWin++;
-			}
-			else if(findResult == LOSE) {
-				canLose++;
-			}
-			
-			visited[nextV] = true;
-			dfs(nextV, findResult, visited);
-		}
-	}
+class Solution {
+    public int solution(int n, int[][] results){
+        int answer = 0;
+        int[][] resultBoard = new int[n + 1][n + 1];
+        
+        for(int[] result : results){
+            int winner = result[0];
+            int loser = result[1];
+            
+            resultBoard[winner][loser] = 1;
+            resultBoard[loser][winner] = -1;
+        }
+        
+        for(int k = 1; k <= n; k++){
+            for(int i = 1; i <= n; i++){
+                for(int j = 1; j <= n; j++){
+                    if(resultBoard[i][k] == 1 && resultBoard[k][j] == 1){
+                        resultBoard[i][j] = 1;
+                        resultBoard[j][i] = -1;
+                    }
+                }
+            }
+        }
+        
+        for(int i = 1; i <= n; i++){
+            int count = 0;
+            
+            for(int j = 1; j <= n; j++){
+                if(resultBoard[i][j] != 0){
+                    count++;
+                }
+            }
+            
+            if(count == n - 1){
+                answer++;
+            }    
+        }
+        
+        return answer;
+    }
+    
+//     public int solution(int n, int[][] results) {
+//         boolean[][] winBoard = new boolean[n + 1][n + 1];
+//         for(int[] result : results){
+//             winBoard[result[0]][result[1]] = true;
+//         }
+        
+//         for(int k = 1; k <= n; k++){
+//             for(int i = 1; i <= n; i++){
+//                 for(int j = 1; j <= n; j++){
+//                     if(k == i || i == j || j == k){
+//                         continue;
+//                     }
+                    
+//                     if(winBoard[i][k] && winBoard[k][j]){
+//                         winBoard[i][j] = true;
+//                     }
+//                 }
+//             }
+//         }
+        
+//         int[][] winLoseCount = new int[n + 1][2];
+//         for(int i = 1; i <= n; i++){
+//             for(int j = 1; j <= n; j++){
+//                 if(winBoard[i][j]){
+//                     winLoseCount[i][0]++;
+//                     winLoseCount[j][1]++;
+//                 }
+//             }
+//         }
+        
+//         int answer = 0;
+//         for(int i = 1; i <= n; i++){
+//             if(winLoseCount[i][0] + winLoseCount[i][1] == n - 1){
+//                 answer++;
+//             }
+//         }
+        
+//         return answer;
+//     }
 }
