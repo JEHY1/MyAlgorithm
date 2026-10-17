@@ -48,27 +48,17 @@ class Solution {
     
     private boolean isWidthValid(int x, int y){
         //아래 기둥 //오른쪽 아래 기둥 //양쪽 보
-        if((y - 1 >= 0 && heightBoard[y - 1][x]) 
+        return (y - 1 >= 0 && heightBoard[y - 1][x]) 
            || (y - 1 >= 0 && x + 1 <= n && heightBoard[y - 1][x + 1]) 
-           || (x + 1 <= n && x - 1 >= 0 && widthBoard[y][x - 1] && widthBoard[y][x + 1])){
-            
-            return true;
-        }
-
-        return false;
+           || (x + 1 <= n && x - 1 >= 0 && widthBoard[y][x - 1] && widthBoard[y][x + 1]);
     }
     
     private boolean isHeightValid(int x, int y){
         //바닥인 경우 //아래 기둥이 있는 경우 // 아래 보 있는 경우 // 왼쪽 아래 보 있는 경우
-        if((y == 0) 
+        return (y == 0) 
            || (heightBoard[y - 1][x]) 
            || (widthBoard[y][x]) 
-           || (x - 1 >= 0 && widthBoard[y][x - 1])){
-            
-            return true;
-        }
-        
-        return false;
+           || (x - 1 >= 0 && widthBoard[y][x - 1]);
     }    
     
     private void addWidth(int x, int y){
