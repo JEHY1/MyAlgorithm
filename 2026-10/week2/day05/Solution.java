@@ -7,6 +7,7 @@ class Solution {
     long k;
     Map<Long, Integer> mapper;
     long[] biggestRoomNumber;
+    int[] size;
 
     public long[] solution(long k, long[] room_number) {
         init(k, room_number);
@@ -23,8 +24,10 @@ class Solution {
         this.k = k;
         this.n = room_number.length;
         parent = new int[n];
-        for(int i = 1; i < n; i++){
+        size = new int[n];
+        for(int i = 0; i < n; i++){
             parent[i] = i;
+            size[i] = 1;
         }
         biggestRoomNumber = new long[n];
         mapper = new HashMap<>();
@@ -74,8 +77,8 @@ class Solution {
         if(a == b){
             return;
         }
-        
-        if(biggestRoomNumber[a] < biggestRoomNumber[b]){
+
+        if(size[a] < size[b]){
             int temp = a;
             a = b;
             b = temp;
@@ -83,5 +86,6 @@ class Solution {
         
         parent[b] = a;
         biggestRoomNumber[a] = Math.max(biggestRoomNumber[a], biggestRoomNumber[b]);
+        size[a] += size[b];
     }
 }
