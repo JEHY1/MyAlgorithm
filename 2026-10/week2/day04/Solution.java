@@ -69,6 +69,14 @@ class Solution {
     }
     
     private boolean check(){
+        if(holeCount == 0){
+            return true;
+        }
+
+        if(keyIdxList.size() < holeCount){
+            return false;
+        }
+
         for(int i = 0; i < 4; i++){
             for(int offsetR = 1 - m; offsetR < n; offsetR++){
                 for(int offsetC = 1 - m; offsetC < n; offsetC++){
