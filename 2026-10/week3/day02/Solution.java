@@ -1,4 +1,5 @@
 import java.util.*;
+import java.util.function.Supplier;
 
 class Solution {
     public int solution(int[][] game_board, int[][] table) {
@@ -12,18 +13,18 @@ class Solution {
     
     int n;
     Queue<Set<Long>> blank;
-    Queue<Set<Long>> block;
+    Queue<List<Long>> block;
     
     private void init(int[][] game_board, int[][] table){
         n = game_board.length;
-        blank = getNomalizationPieces(game_board, 0);
-        block = getNomalizationPieces(table, 1);
+        blank = getNomalizationPieces(game_board, 0, HashSet::new);
+        block = getNomalizationPieces(table, 1, ArrayList::new);
     }
     
     private int getMax(){
         int answer = 0;
         while(!block.isEmpty()){
-            Set<Long> nomalizationBlock = block.poll();
+            List<Long> nomalizationBlock = block.poll();
             
             tar:for(int i = 0; i < blank.size(); i++){
                 Set<Long> nomalizationBlank = blank.poll();
@@ -33,7 +34,7 @@ class Solution {
                 }
                 
                 for(int cnt = 0; cnt < 4; cnt++){
-                    if(nomalizationBlank.size() == nomalizationBlock.size() && nomalizationBlank.containsAll(nomalizationBlock)){
+                    if(nomalizationBlank.containsAll(nomalizationBlock)){
                         answer += nomalizationBlock.size();
                         break tar;
                     }
@@ -48,10 +49,10 @@ class Solution {
         return answer;
     }
     
-    private Queue<Set<Long>> getNomalizationPieces(int[][] board, int val){
+    private <T extends Collection<Long>> Queue<T> getNomalizationPieces(int[][] board, int val, Supplier<T> factory){
         Queue<int[]> queue = new ArrayDeque<>();
         boolean[][] visited = new boolean[n][n];
-        Queue<Set<Long>> pieceQueue = new ArrayDeque<>();
+        Queue<T> pieceQueue = new ArrayDeque<>();
         
         for(int r = 0; r < n; r++){
             for(int c = 0; c < n; c++){
@@ -63,7 +64,7 @@ class Solution {
                     continue;
                 }
                 
-                Set<Long> nomalizationPiece = new HashSet<>();
+                T nomalizationPiece = factory.get();
                 
                 queue.offer(new int[] {r, c});
                 visited[r][c] = true;
@@ -104,23 +105,20 @@ class Solution {
         return pieceQueue;
     }
     
-    private void rotate(Set<Long> nomalizationPiece){
+    private void rotate(List<Long> nomalizationPiece){
         int offsetR = 0;
         int offsetC = 0;
         
-        List<int[]> tempList = new ArrayList<>();
-        Iterator<Long> iter = nomalizationPiece.iterator();
-        
-        while(!nomalizationPiece.isEmpty()){
-
-            long key = iter.next();
-            iter.remove();
-            
+        for(int i = 0; i < nomalizationPiece.size(); i++){
+            long key = nomalizationPiece.get(i);
             int r = (int)(key >> 32);
             int c = (int)key;
             int temp = r;
             r = c;
             c = -temp;
+            
+            key = ((long)r << 32) | ((long)c & 0xffffffffL);
+            nomalizationPiece.set(i, key);
             
             if(r < offsetR){
                 offsetR = r;
@@ -129,16 +127,18 @@ class Solution {
             else if(r == offsetR){
                 offsetC = Math.min(offsetC, c);
             }
-            
-            tempList.add(new int[]{r, c});            
         }
         
-        for(int[] p : tempList){
-            int r = p[0] - offsetR;
-            int c = p[1] - offsetC;
-            long key = ((long)r << 32) | ((long)c & 0xffffffffL);
+        for(int i = 0; i < nomalizationPiece.size(); i++){
+            long key = nomalizationPiece.get(i);
+            int r = (int)(key >> 32);
+            int c = (int)key;
             
-            nomalizationPiece.add(key);
+            r -= offsetR;
+            c -= offsetC;
+            
+            key = ((long)r << 32) | ((long)c & 0xffffffffL);
+            nomalizationPiece.set(i, key);
         }
     }
 }
