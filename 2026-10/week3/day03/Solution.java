@@ -2,6 +2,7 @@ class Solution {
     public int[] solution(int e, int[] starts) {
         init(e);
         calcAppearCount();
+        calcMaxAppearCount();
         int[] answer = getAnswer(starts);
         return answer;
     }
@@ -22,12 +23,14 @@ class Solution {
                 appearCount[i * j]++;
             }
         }
-        
+    }
+    
+    private void calcMaxAppearCount(){
         maxAppearNumber[e] = e;
         
         for(int i = e - 1; i > 0; i--){
-            maxAppearNumber[i] = appearCount[i] >= appearCount[i + 1] ? i : maxAppearNumber[i + 1];
-            appearCount[i] = Math.max(appearCount[i], appearCount[i + 1]);
+            int prevMaxAppearNum = maxAppearNumber[i + 1];
+            maxAppearNumber[i] = appearCount[i] >= appearCount[prevMaxAppearNum] ? i : prevMaxAppearNum;
         }
     }
         
