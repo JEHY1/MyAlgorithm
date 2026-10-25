@@ -7,10 +7,11 @@ class Solution {
     int N;
     int[][] board;
     
-    boolean[] existBlock;
+    boolean[] initialBlockExists;
     int[] blockMaxRow;
     int[] blockMinCol;
     int[] blockMaxCol;
+    int[] blockMinRow;
     
     int[] next;
     int[] prev;
@@ -30,22 +31,26 @@ class Solution {
         
         N = board.length;
         this.board = board;
-        existBlock = new boolean[MAX_BLOCK_COUNT + 1];
+        initialBlockExists = new boolean[MAX_BLOCK_COUNT + 1];
         blockMaxRow = new int[MAX_BLOCK_COUNT + 1];
         blockMinCol = new int[MAX_BLOCK_COUNT + 1];
         blockMaxCol = new int[MAX_BLOCK_COUNT + 1];
+        blockMinRow = new int[MAX_BLOCK_COUNT + 1];
         Arrays.fill(blockMinCol, Integer.MAX_VALUE);
         Arrays.fill(blockMaxCol, -1);
+        Arrays.fill(blockMinRow, Integer.MAX_VALUE);
         
         for(int r = 0; r < N; r++){
             for(int c = 0; c < N; c++){
                 if(board[r][c] != 0){
                     int blockNum = board[r][c];
-                    if(!existBlock[blockNum]){
+                    if(!initialBlockExists[blockNum]){
                         addBlock(blockNum);
                     }
                     
-                    existBlock[blockNum] = true;
+                    initialBlockExists[blockNum] = true;
+                    
+                    blockMinRow[blockNum] = Math.min(blockMinRow[blockNum], r);
                     blockMaxRow[blockNum] = r;
                     blockMinCol[blockNum] = Math.min(blockMinCol[blockNum], c);
                     blockMaxCol[blockNum] = Math.max(blockMaxCol[blockNum], c);                         
@@ -105,7 +110,7 @@ class Solution {
         int r1 = blockMaxRow[blockNum];
         int c1 = blockMinCol[blockNum];
         int c2 = blockMaxCol[blockNum];
-        int r2 = r1 - ((c2 - c1) ^ 3);
+        int r2 = blockMinRow[blockNum];
         
         for(int c = c1; c <= c2; c++){
             for(int r = r1; r >= r2; r--){
@@ -113,9 +118,8 @@ class Solution {
                     if(!isValidColumn(r, c)){
                         return false;
                     }
-                    else{
-                        break;
-                    }
+                    
+                    break;
                 }
                 else if(board[r][c] != blockNum){
                     return false;
@@ -131,7 +135,7 @@ class Solution {
         int startR = blockMaxRow[blockNum];
         int startC = blockMinCol[blockNum];
         int endC = blockMaxCol[blockNum];
-        int endR = startR - ((endC - startC) ^ 3);
+        int endR = blockMinRow[blockNum];
         
         for(int r = startR; r >= endR; r--){
             for(int c = startC; c <= endC; c++){
