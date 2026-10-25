@@ -6,8 +6,6 @@ class Solution {
     static int[] dc = {0, 1, 0, -1};
     
     int n;
-    int[] parent;
-    int[] size;
     int height;
     int[][] land;
     
@@ -20,14 +18,7 @@ class Solution {
     private void init(int[][] land, int height){
         this.land = land;
         n = land.length;
-        parent = new int[n * n];
-        size = new int[n * n];
         this.height = height;
-        
-        for(int i = 0; i < n * n; i++){
-            parent[i] = i;
-            size[i] = 1;
-        }
     }
     
     private int getMinCost(){
@@ -50,7 +41,6 @@ class Solution {
             }
             
             totalCost += cost;
-            union(0, compressP);
             visited[compressP] = true;
             unionCount++;
 
@@ -79,31 +69,5 @@ class Solution {
         }
         
         return -1;
-    }
-    
-    private int find(int x){
-        if(x == parent[x]){
-            return x;
-        }
-        
-        return parent[x] = find(parent[x]);
-    }
-    
-    private void union(int a, int b){
-        a = find(a);
-        b = find(b);
-        
-        if(a == b){
-            return;
-        }
-        
-        if(size[a] < size[b]){
-            int temp = a;
-            a = b;
-            b = temp;
-        }
-        
-        parent[b] = a;
-        size[a] += size[b];
-    }
+    } 
 }
