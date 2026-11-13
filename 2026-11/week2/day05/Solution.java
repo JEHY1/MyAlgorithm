@@ -4,7 +4,7 @@ import java.io.InputStreamReader;
 
 class Solution{
     public static void main(String[] args) throws IOException {
-        new Main().solution();
+        new Solution().solution();
     }
 
     int[][] board;
